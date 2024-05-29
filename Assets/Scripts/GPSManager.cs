@@ -1,15 +1,18 @@
 using UnityEngine;
 using System.Collections;
-//My Directives
+using TMPro;
+
 public class GPSManager : MonoBehaviour
 {
-    private LocationProcessor locationProcessor;
-    private MapManager mapManager;
+    public LocationProcessor locationProcessor;
+    public bool continuousUpdate = false;
 
     private void Start()
     {
-        locationProcessor = FindObjectOfType<LocationProcessor>();
-        mapManager = FindObjectOfType<MapManager>();
+        if (locationProcessor == null)
+        {
+            locationProcessor = FindObjectOfType<LocationProcessor>();
+        }
 
         StartCoroutine(StartLocationService());
     }
@@ -18,33 +21,39 @@ public class GPSManager : MonoBehaviour
     {
         if (!Input.location.isEnabledByUser)
         {
-            Debug.Log("Location services are not enabled by the user.");
+            Debug.LogError("Location services are not enabled by the user.");
             yield break;
         }
 
-        Input.location.Start();
+        // Start location services with desired accuracy and update distance
+        Input.location.Start(10f, 1f);  // 10 meters accuracy!  update every 1 meter
+
         int maxWait = 20;
         while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
         {
+            Debug.Log("Initializing location services...");
             yield return new WaitForSeconds(1);
             maxWait--;
         }
 
         if (maxWait < 1)
         {
-            Debug.Log("Location services initialization timed out.");
+            Debug.LogError("Location services initialization timed out.");
             yield break;
         }
 
         if (Input.location.status == LocationServiceStatus.Failed)
         {
-            Debug.Log("Unable to determine device location.");
+            Debug.LogError("Unable to determine device location.");
             yield break;
         }
         else
         {
-            // Start a coroutine to update the location continuously
-            StartCoroutine(UpdateLocation());
+            Debug.Log("Location services started successfully.");
+            if (continuousUpdate)
+            {
+                StartCoroutine(UpdateLocation());
+            }
         }
     }
 
@@ -54,19 +63,30 @@ public class GPSManager : MonoBehaviour
         {
             if (Input.location.status == LocationServiceStatus.Running)
             {
-                // Access granted and location value could be retrieved
                 float latitude = Input.location.lastData.latitude;
                 float longitude = Input.location.lastData.longitude;
+                float altitude = Input.location.lastData.altitude;
 
-                locationProcessor.UpdateGPSDisplay(latitude, longitude);
-                mapManager.PositionMarker(new Vector2(latitude, longitude));
+                locationProcessor.UpdateGPSDisplay(latitude, longitude, altitude);
             }
             else
             {
-                Debug.Log("Location services stopped.");
+                Debug.LogError("Location services stopped.");
             }
-            // Waiting before checking location again
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(1);  // Update every second
+        }
+    }
+
+    public (float latitude, float longitude, float altitude) GetCurrentLocation()
+    {
+        if (Input.location.status == LocationServiceStatus.Running)
+        {
+            return (Input.location.lastData.latitude, Input.location.lastData.longitude, Input.location.lastData.altitude);
+        }
+        else
+        {
+            Debug.LogError("Location services are not running.");
+            return (0f, 0f, 0f);
         }
     }
 }

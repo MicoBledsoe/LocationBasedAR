@@ -1,9 +1,11 @@
 using UnityEngine;
-//My dIRECTIVES
+using TMPro;
+//My directives
 
 public class MapManager : MonoBehaviour
 {
-    public Transform playerMarker; // gaME mARKER
+    public Transform playerMarker; // The marker representing the player's position
+    public GameObject markerPrefab; // The prefab for the 3D marker
 
     public void PositionMarker(Vector2 gpsPosition)
     {
@@ -11,11 +13,19 @@ public class MapManager : MonoBehaviour
         playerMarker.position = worldPosition;
     }
 
+    public void DrawMarker(Vector2 gpsPosition, string label)
+    {
+        Vector3 worldPosition = GPSToWorldPosition(gpsPosition);
+        GameObject marker = Instantiate(markerPrefab, worldPosition, Quaternion.identity);
+        TextMeshPro labelComponent = marker.GetComponentInChildren<TextMeshPro>();
+        if (labelComponent != null)
+        {
+            labelComponent.text = label;
+        }
+    }
+
     private Vector3 GPSToWorldPosition(Vector2 gpsPosition)
     {
-
-        float x = gpsPosition.x * 1000; 
-        float z = gpsPosition.y * 1000;
-        return new Vector3(x, 0, z); 
+        return GPSEncoder.GPSToUCS(gpsPosition);
     }
 }
