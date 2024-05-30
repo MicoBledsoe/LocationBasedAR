@@ -1,10 +1,9 @@
 using UnityEngine;
 using TMPro;
-//My directives
 
 public class LocationProcessor : MonoBehaviour
 {
-    public TextMeshProUGUI gpsDisplay; // UGUI
+    public TextMeshProUGUI gpsDisplay; // UGUI element to display GPS data
     private Vector2 lastKnownPosition;
 
     public void UpdateGPSDisplay(float latitude, float longitude, float altitude)

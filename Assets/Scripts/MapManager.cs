@@ -1,6 +1,5 @@
 using UnityEngine;
 using TMPro;
-//My directives
 
 public class MapManager : MonoBehaviour
 {
